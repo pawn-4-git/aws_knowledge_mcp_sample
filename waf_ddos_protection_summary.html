@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS WAF DDoS保護の概要</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #0056b3;
+        }
+
+        h2 {
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
+
+        h3 {
+            margin-top: 15px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .pricing {
+            background-color: #e7f3fe;
+            border-color: #b3d7ff;
+        }
+
+        .config {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .features {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .availability {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        code {
+            background-color: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        ul {
+            margin-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>AWS WAF アプリケーションレイヤー (L7) DDoS 保護の概要</h1>
+
+    <div class="section features">
+        <h2>主な機能と特徴</h2>
+        <p>AWS WAFは、主にHTTP/Sトラフィックを標的とするアプリケーションレイヤー（レイヤー7）DDoS攻撃を自動的に検出し、緩和するための<strong>AntiDDoS
+                AMR（AWSマネージドルールグループ）</strong>を導入しました。</p>
+        <ul>
+            <li><strong>自動検出と緩和:</strong> 有効化後数分以内にトラフィックパターンを学習し、ベースラインを確立し、異常を検出して迅速（数秒以内）に攻撃を緩和します。</li>
+            <li><strong>攻撃タイプの識別:</strong> 悪意のあるDDoSイベントと正当な「フラッシュクラウド」（正当なトラフィックの急増）を区別します。</li>
+            <li><strong>緩和アクション:</strong> 主に2つのアクションを提供します：
+                <ul>
+                    <li><strong>チャレンジ:</strong> 正当なユーザーを確認するためにサイレントブラウザチャレンジを送信します。</li>
+                    <li><strong>ブロック:</strong> 悪意のあると特定されたリクエストを直接ブロックします。</li>
+                </ul>
+            </li>
+            <li><strong>感度制御:</strong> BlockおよびChallengeアクションの両方で、検出された脅威に対するルールの感度（低、中、高）をカスタマイズできます。</li>
+            <li><strong>除外URI:</strong> チャレンジを処理できないURIの正規表現を指定でき、誤ってブロックされるのを防ぎます。</li>
+            <li><strong>ラベル:</strong> 可視性を高め、カスタムルールを作成するために、リクエストにラベル（例:
+                <code>awswaf:managed:aws:anti-ddos:high-suspicion-ddos-request</code>）を付与します。
+            </li>
+            <li><strong>可視性:</strong> AWS
+                WAFコンソール内のダッシュボードで、トラフィックソース、対象URI、緩和アクションを含むDDoSアクティビティに関するリアルタイムの洞察を提供します。詳細なログ記録と分析のためにCloudWatchと統合されています。
+            </li>
+        </ul>
+    </div>
+
+    <div class="section config">
+        <h2>設定とベストプラクティス</h2>
+        <ul>
+            <li><strong>統合:</strong> AntiDDoS AMRをAWS WAF Web ACLにAWSマネージドルールグループとして追加します。</li>
+            <li><strong>優先度:</strong> 最大限の効果を得るために、AntiDDoS AMRルールグループをWeb
+                ACL内で最も高い優先度（一番上、またはカスタムの「許可」ルールの直下）に配置し、できるだけ多くのトラフィックを検査できるようにします。</li>
+            <li><strong>カスタマイズ:</strong> 特定のアプリケーションのニーズに合わせて保護を微調整するために、感度レベルを調整し、除外URIの正規表現を設定します。</li>
+        </ul>
+    </div>
+
+    <div class="section availability">
+        <h2>利用可能性</h2>
+        <p>AntiDDoS AMRは、以下のAWSサービスに関連付けられたAWS WAF Web ACLで利用可能です。</p>
+        <ul>
+            <li>Amazon CloudFront</li>
+            <li>Application Load Balancer (ALB)</li>
+            <li>WAFでサポートされているその他のAWSサービス。</li>
+        </ul>
+        <p>これは50 WCUを消費します。</p>
+    </div>
+
+    <div class="section pricing">
+        <h2>料金情報</h2>
+        <p><strong>注意:</strong> AWSは、アクティブな緩和中にDDoSとして検出されたリクエスト（カウントモードでない場合）に対して料金を請求しません。</p>
+
+        <h3>AWS Shield Advancedのお客様:</h3>
+        <p>AWS Shield Advancedのお客様は、この機能がサブスクリプションに含まれています。</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>詳細</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>含まれるリクエスト数</td>
+                    <td>月間500億件</td>
+                </tr>
+                <tr>
+                    <td>超過料金</td>
+                    <td>500億件超の場合、100万リクエストあたり$0.15</td>
+                </tr>
+                <tr>
+                    <td>DDoS緩和済みリクエスト</td>
+                    <td>500億件の制限に含まれません</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>AWS WAFのお客様（Shield Advancedなし）:</h3>
+        <p>AWS WAFのお客様は、この機能を追加で有効にする必要があります。</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>料金</th>
+                    <th>超過料金（100万リクエストあたり）</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>月額基本料金</td>
+                    <td>$20/月（時間按分）</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>基本WAF料金</td>
+                    <td>$0.60/百万リクエスト</td>
+                    <td>$0.15</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>結論</h2>
+        <p>AntiDDoS AMRは、進化するレイヤー7 DDoS攻撃からWebアプリケーションを保護するための強力で自動化されたソリューションを提供します。WAFとShield
+            Advancedの両方のお客様に、強化された可視性、カスタマイズ可能な制御、および柔軟な料金オプションを提供します。</p>
+        <p>詳細については、<a href="https://docs.aws.amazon.com/waf/latest/developerguide/waf-anti-ddos.html">AWS WAF Managed
+                Rules AntiDDoS AMRドキュメント</a>を参照してください。</p>
+    </div>
+
+</body>
+
+</html>
