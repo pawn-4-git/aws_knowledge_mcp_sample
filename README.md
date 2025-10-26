@@ -1,0 +1,1 @@
+AWS Knowledge MCPを使用した結果のHTMLのサンプルを保存しているリポジトリです。
